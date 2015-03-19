@@ -1,0 +1,60 @@
+
+Poniendo un tablespace fuera de linea
+  - No se pueden accesar los datos
+  - Tablespaces que no pueden ponerse fuera de linea:
+      Tablespaces de SYSTEM
+      Tablespaces con segmentos activos de undo
+      Tablespaces temporales
+
+Cuando un tablespace esta fuera de linea:
+  - Se pueden crear objetos pero no se pueden consultar
+
+Si un tablespaces esta en READ ONLY se pueden leer y eliminar datos, no se pueden crear
+ni actualizar
+
+------------------------------------------------------
+
+ * Ponemos un tablespaces en offline
+ * Pruebas con status de tablespace
+
+---- DBA_TABLESPACE -> EXTEND_MANAGEMENT
+
+ * Modificar el tamaño de un tablespace
+    - Automatico: Con autoextend
+    - Manualmente: ALTER DATABASE
+   
+ -$ ALTER TABLESPACE PRUEBA ADD DATAFILE 'PATH' SIZE 10M
+
+ * Metadatos sobre DATAFILES: DBA_DATA_FILES
+
+ * Obtener el tamaño total de un tablespace:
+ SELECT TABLESPACE_NAME, SUM(BYTES)/1024/1024 FROM DBA_DATA_FILES GROUP BY TABLESPACE_NAME
+
+ * Borrar tablespace
+ > DROP TABLESPACE <NOMBRE> INCLUDING DATAFILES AND CONTENTS
+ > DROP TABLESPACE <NOMBRE> INCLUDING CONTENTS 'No elimina los datafiles del sistema
+
+------------------------------------------------------
+
+ * Crear tablespace nuevo:
+> CREATE TABLESPACE PRUEBA2 DATAFILE '/u01/datafiles/prueba2.01.dbf' SIZE 2M;
+ 
+ * Modificar
+> ALTER DATABASE DATAFILE '<PATH>' AUTOEXTEND ON NEXT 1M;
+// Consultar en diccionario que datafiles tienen autoextend
+// SELECT AUTOEXTENSIBLE, FILE_NAME FROM DBA_DATA_FILES
+
+> CREAR UNA TABLA PARA PRUEBA EN EL TABLESPACE
+> INSERTAR DATOS MEDIANTE UN SCRIPT PARA COMPROBAR QUE EL AUTOEXTEND ESTA FUNCIONANDO
+  Y COMPROBAR QUE AUTOEXTEND FUNCIONA:
+  DESPUES DE INSERTAR VERIFICAR CON:
+  SELECT FILE_NAME, BYTES/1024/1024 FROM DBA_DATA_FILES WHERE TABLESPACE_NAME='PRUEBA2';
+
+------------------------------------------------------
+ * Un truncate no genera datos en undo, en cambio un delete si lo hace
+   ( Que pasa si tengo una tabla enorme y la elimino con delete? Se incrementa undo exponencialmente)
+ * Si en examen viene poner SYSTEM tablespace OFFLINE:
+   No se puede (Es la respuesta correcta)
+
+Como asignar un tablespace a un usuario? como modificar el default tablespace de un usuario
+

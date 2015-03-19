@@ -1,0 +1,15 @@
+CREAR TABLAS DENTRO DE RECHUM Y  CONSULTAR EN EL DICCIONARIO DE DATOS EN QUE TABLESPACE ESTAN
+
+DBA_TABLES
+
+
+Creado en clase
+
+GRANT  RESOURCE TO SUSER
+
+SELECT DBA_TABLES DONDE EL DUEÑO SEA SUSER
+- Tabla 1 esta en el tablespace prueba
+- Garantizar permisos a un usuario sobre un tablespace CREATE USER SUSER DEFAULT TABLESPACE PRUEBA IDENTIFIED BY SUSER
+
+Si se borra el tablespace asignado a un usuario, que tablespace le queda?
+SELECT USERNAME, default_tablespace from DBA_USERS WHERE USERNAME='PRUEBA';
