@@ -4,6 +4,27 @@
  - 3.1 Estructuras lógicas de almacenamiento
    * Definición de espacio de almacenamiento
    * Tablespaces y Datafiles
+     - Creando tablespaces
+     - Administración de tablespaces
+       * Locally Managed Tablespaces
+       * Tablespaces administrados por el diccionario de datos
+       * Migrando el tablespace de SYSTEM a Locally Managed
+       * Tablespace de UNDO
+       * Tablespaces temporales
+       * Tablespaces en modo READ-ONLY
+       * Tablespaces en modo OFFLINE
+     - Administrando la configuración de almacenamiento
+       * Redimensionando un tablespace
+       * Habilitando la extensión automatica de DATAFILES
+       * Cambiando el tamaño de un DATAFILE manualmente
+       * Agregando datafiles a un tablespace
+     - Métodos para mover un tablespace
+       * Para tablespaces que no sean de SYSTEM
+       * Tablespace de SYSTEM
+     - Borrando tablespaces
+   * Administración de tablespaces utilizando OMF
+     - Operaciones con tablespaces utilizando OMF
+ - 3.2 Segmentos
 
 ##Definición de espacio de almacenamiento
 Oracle almacena los datos lógicamente en Tablespaces y fisicamente en Datafiles asociados con su correspondiente tablespace.

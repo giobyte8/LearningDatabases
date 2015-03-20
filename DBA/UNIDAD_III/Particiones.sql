@@ -177,5 +177,6 @@ INSERT INTO DEMO_SUBPARTITIONS VALUES(2011, 01, 31, 1, 'OTRO DATO');
 -- *************************************************************** --
 -- Consultando metadatos sobre tablas particionadas.
 
-
+-- Para ver subparticiones de una tabla:
+SELECT TABLE_NAME, PARTITION_NAME, SUBPARTITION_NAME FROM DBA_TAB_SUBPARTITIONS;
 
