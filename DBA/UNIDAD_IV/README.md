@@ -22,14 +22,14 @@ Cada registro de la bitacora representa una alteración a la base de datos y con
  * Valor antiguo
  * Valor nuevo
 
-Es fundamental que cada vez que ** se realice una modificación ** a la base de datos se cree un registro en la bitacora antes de que se genere la alteración en la base de datos.
+Es fundamental que cada vez que **se realice una modificación** a la base de datos se cree un registro en la bitacora antes de que se genere la alteración en la base de datos.
 
-Las operaciones ** COMMIT ** y ** ROLLBACK ** establecen lo que se conoce como ** punto de sincronización ** lo cual representa el limite entre una transacción y otra o el final de una unidad lógica de trabajo.
+Las operaciones **COMMIT** y **ROLLBACK** establecen lo que se conoce como **punto de sincronización** lo cual representa el limite entre una transacción y otra o el final de una unidad lógica de trabajo.
 
-*Las unicas operaciones que establecen un ** punto de sincronización ** son ** COMMIT **, ** ROLLBACK ** y el ** inicio de un programa ***
+Las unicas operaciones que establecen un **punto de sincronización** son **COMMIT**, **ROLLBACK** y el **inicio de un programa**
 
 ##REDO Logs
-La estructura crucial para operaciones de recuperación de la base de datos es el ** redo log **, que consiste de dos o mas archivos preasignados para almacenar todos los cambios hechos a la base de datos conforme ocurren. Cada instancia de la base de datos Oracle, tiene un redo log asociado para proteger la base de datos en caso de alguna falla de la instancia.
+La estructura crucial para operaciones de recuperación de la base de datos es el **redo log* *, que consiste de dos o mas archivos preasignados para almacenar todos los cambios hechos a la base de datos conforme ocurren. Cada instancia de la base de datos Oracle, tiene un redo log asociado para proteger la base de datos en caso de alguna falla de la instancia.
 
 
 ###Contentido de un REDO Log
