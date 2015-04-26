@@ -10,18 +10,23 @@
 ##Bitacoras
 En muchos DBMS la bitacora incluye todo tipo de consultas incluyendo aquellas que no modifican los datos. La operación ROLLBACK esta basada en el uso de una bitacora.
 
-EL DBMS mantiene una bitacora o diario donde se registran los detalles de todas las operaciones de actualización, en particular los valores inicial y final del objeto modificado. Esta bitacora puede estar almacenada en disco o en cinta.
+EL DBMS mantiene una bitacora o diario donde se registran los detalles de todas las operaciones de actualización. En particular los valores inicial y final del objeto modificado. Esta bitacora puede estar almacenada en disco o en cinta.
 
-Por tanto, si resulta necesario anular alguna modificación especifica el sistema puede utilizar la entrada correspondiente de la bitacora para restaurar el valor original del objeto.
+Por lo tanto, si resulta necesario anular alguna modificación especifica el sistema puede utilizar la entrada correspondiente de la bitacora para restaurar el valor original del objeto.
 
 ###Funciones especificas de las bitacoras
 **La estructura mas usada para grabar las modificaciones de la base de datos es la bitacora**
 
-Cada registro representa una alteración a la base de datos y contiene lo siguiente:
+Cada registro de la bitacora representa una alteración a la base de datos y contiene lo siguiente:
  * Nombre de la transacción
  * Valor antiguo
  * Valor nuevo
- * 
+
+Es fundamental que cada vez que ** se realice una modificación ** a la base de datos se cree un registro en la bitacora antes de que se genere la alteración en la base de datos.
+
+Las operaciones ** COMMIT ** y ** ROLLBACK ** establecen lo que se conoce como ** punto de sincronización ** lo cual representa el limite entre una transacción y otra o el final de una unidad lógica de trabajo.
+
+*Las unicas operaciones que establecen un ** punto de sincronización ** son ** COMMIT **, ** ROLLBACK ** y el ** inicio de un programa ***
 
 ##REDO Logs
 La estructura crucial para operaciones de recuperación de la base de datos es el ** redo log **, que consiste de dos o mas archivos preasignados para almacenar todos los cambios hechos a la base de datos conforme ocurren. Cada instancia de la base de datos Oracle, tiene un redo log asociado para proteger la base de datos en caso de alguna falla de la instancia.
