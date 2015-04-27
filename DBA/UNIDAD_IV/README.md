@@ -492,6 +492,62 @@ Esto nos da toda la información necesaria sobre la configuración del modo de a
  * El actual redo log file tiene un número de secuencia d 11163.
 
 
+## Practicas con Oracle 11GR2
+
+### Activando el Archived Redo Log paso a paso (ARCHIVELOG)
+
+* Comprobamos cual es el estado actual de la base de datos:
+```SQL
+ARCHIVE LOG LIST
+```
+    Database log mode	       No Archive Mode
+    Automatic archival	       Disabled
+    Archive destination	       USE_DB_RECOVERY_FILE_DEST
+    Oldest online log sequence     5
+    Current log sequence	       7
+
+* Una vez confirmado que la base de datos no esta ya en modo ```ARCHIVELOG```, asignamos la carpeta de destino de los redo log offline.
+```SQL
+ALTER SYSTEM SET LOG_ARCHIVE_DEST_1='LOCATION=/u01/logs/offline/' SCOPE=SPFILE;
+```
+
+* Ahora debemos detener la base de datos y ponerla en modo mount para establecer el modo ```ARCHIVELOG```.
+```SQL
+SHUTDOWN IMMEDIATE;
+STARTUP MOUNT;
+```
+
+* Indicamos a oracle que debe iniciarse desde ahora en modo ```ARCHIVELOG``` y abrimos la base de datos para operación normal.
+```SQL
+ALTER DATABASE ARCHIVELOG;
+ALTER DATABASE OPEN;
+```
+
+* A partir de ahora la base de datos esta en modo ```ARCHIVELOG```. Podemos comprobarlo mediante el comando ```ARCHIVE LOG LIST``` o mediante el query ```SELECT NAME, LOG_MODE FROM V$DATABASE```.
+
+* Se puede comprobar el archiveo de los redo log files forzando un Log Switch: ```ALTER SYSTEM SWITCH LOGFILE;```.
+
+### Activando el multiplexeo del Redo Log
+
+* Comprobamos el estado actual del archiving de los redo log files
+```SQL
+SELECT * FROM V$LOGFILE
+```
+
+* Ejecutamos ```ALTER DATABASE``` para generar miembros en cada grupo de redo log files.
+```SQL
+ALTER DATABASE ADD LOGFILE MEMBER '/u01/logs/log2b.rdo' TO GROUP 1;
+ALTER DATABASE ADD LOGFILE MEMBER '/u01/logs/log2a.rdo' TO GROUP 1;
+ALTER DATABASE ADD LOGFILE MEMBER '/u01/logs/log3a.rdo' TO GROUP 2;
+ALTER DATABASE ADD LOGFILE MEMBER '/u01/logs/log3b.rdo' TO GROUP 2;
+```
+
+* Revisamos la vista para confirmar que el nuevo miembro ha sido añadido al grupo.
+```SQL
+SELEC * FROM V$LOGFILE;
+```
+
+
 ## Referencias externas
 
  * Documentación oficial de Oracle: [Managing the Redo Log](http://docs.oracle.com/cd/E11882_01/server.112/e25494/onlineredo.htm#ADMIN007)
