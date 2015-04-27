@@ -22,8 +22,14 @@
    * Dropping de Redo Log Groups y Members
  * Forzando Log Switches
  * Vistas del diccionario de datos para el REDO LOG
- * Activando el **multiplexeo** del Redo Log
  * El modo **ARCHIVE LOG** y como activarlo
+   * Que es el Archived Redo Log
+   * NOARCHIVELOG vs ARCHIVELOG
+   * Controlando el *archiving*
+   * Consultando información sobre el Archived Redo Log
+ * Practicas con Oracle 11GR2
+   * Activando el Archived Redo Log paso a paso **(ARCHIVELOG)**
+   * Activando el **multiplexeo** del Redo Log
  * Referencias externas
 
 ##Bitacoras
@@ -289,12 +295,59 @@ Para eliminar un miembro de un grupo activo, primero se debe forzar un ```log sw
 
 ##Forzando Log Switches
 
+Un Log Switch ocurre cuando el LGWR deja de escribir en un redo log group y comienza a escribir en otro. Por default un Log Switch ocurre automaticamente cuando el *current redo log file group* se llena.
 
+Se puede forzar un Log Switch para hacer inactivo el grupo actualmente activo para operaciones de mantenimiento del redo log. Por ejemplo, si se desea eliminar el redo log group actual pero no es posible hasta que el grupo este inactivo o si el redo log group actual debe ser archivado en un momento especifico antes de estar completamente llenos los redo log files. Esta configuración es util en redo logs con enormes redo log files que tardan demasiado tiempo en llenarse.
+
+Para forzar un **Log Switch** se debe tener el privilegio ```ALTER SYSTEM```. Uselo junto con ```SWITCH LOGFILE```. La siguiente sentencia forza un ** Log Switch **:
+
+```SQL
+ALTER SYSTEM SWITCH LOGFILE;
+```
+
+##Vistas del diccionario de datos para el REDO LOG
+
+Las siguientes vistas propircionan información sobre Redo Logs.
+
+| Vista             | Descripción                                                      |
+|-------------------|------------------------------------------------------------------|
+| ```V$LOG```       | Muestra la información sobre el redo log file del control file   |
+| ```V$LOGFILE```   | Identifica redo log groups y member y el status de los members   |
+|```V$LOGHISTORY``` | Contiene información del log history                             |
+
+El siguiente query muestra la información del control file sobre el redo log de una base de datos.
+
+```SQL
+SELECT * FROM V$LOG;
+```
+    GROUP# THREAD#   SEQ   BYTES  MEMBERS  ARC STATUS     FIRST_CHANGE# FIRST_TIM
+    ****** ******* ***** *******  *******  *** *********  ************* *********
+         1       1 10605 1048576        1  YES ACTIVE          11515628 16-APR-00
+         2       1 10606 1048576        1  NO  CURRENT         11517595 16-APR-00
+         3       1 10603 1048576        1  YES INACTIVE        11511666 16-APR-00
+         4       1 10604 1048576        1  YES INACTIVE        11513647 16-APR-00
+
+Para ver los nombres de todos los miembros de un grupo, utilice un query similar al siguiente:
+
+```SQL
+SELECT * FROM V$LOGFILE;
+```
+
+    GROUP#   STATUS  MEMBER
+	------  -------  ----------------------------------
+         1           D:\ORANT\ORADATA\IDDB2\REDO04.LOG
+         2           D:\ORANT\ORADATA\IDDB2\REDO03.LOG
+    	 3           D:\ORANT\ORADATA\IDDB2\REDO02.LOG
+         4           D:\ORANT\ORADATA\IDDB2\REDO01.LOG
+
+Si ```STATUS``` es *blank* para un miembro, entonces el archivo esta en uso.
+
+## El modo ARCHIVELOG y como activarlo
 
 
 ## Referencias externas
 
- * Documentación oracle sobre REDO Logs
+ * Documentación oficial de Oracle: [Managing the Redo Log](http://docs.oracle.com/cd/E11882_01/server.112/e25494/onlineredo.htm#ADMIN007)
  * Documetnación oracle sobre
  * Otros enlaces
  * ...
