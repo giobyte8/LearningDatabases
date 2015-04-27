@@ -153,7 +153,143 @@ Se puede forzar a que todos los hilos de redo habilitados switcheen sus *current
 
 Revise la [documentación oficial](http://docs.oracle.com/cd/E11882_01/server.112/e25494/onlineredo.htm#ADMIN11315) para más información sobre el 'Archive Lag'.
 
-##Creando grupos y miembros del Redo Log
+##Grupos y miembros del Redo Log
+
+Planee el redo log de la base de datos y cree todos los grupos y miembros necesarios durante la creación de la base de datos, sin embargo, podría haber situaciones donde se necesite crear grupos o miembros adicionales. Por ejemplo, agregar grupos a un redo log puede corregir problemas de disponibilidad de rego log groups.
+
+Para crear redo log groups y members, se requiere el privilegio ```ALTER DATABASE```. Una base de datos puede tener hasta ```MAXLOGFILES``` groups.
+
+###Creando Redo Log Groups
+
+Para crear un nuevo grupo de redo log files, utilice la instrucción ```ALTER DATABASE``` junto con la clausula ```ADD LOGFILE```.
+
+La siguiente sentencia agrega un nuevo grupo de redo log files a la base de datos:
+```SQL
+ALTER DATABASE ADD LOGFILE ('/oracle/dbs/log1c.rdo', 'oracle/dbs/log2c.rdo') SIZE 100M;
+```
+
+También se puede especificar el número que identifica al grupo mediante la clausula ```GROUP```:
+```SQL
+ALTER DATABASE ADD LOGFILE GROUP 10 ('/oracle/dbs/log1c.rdo', '/oracle/dbs/log2c.rdo') SIZE 100M BLOCKSIZE 512;
+```
+
+Utilice números de grupo consecutivos para no utilizar espacio inecesario en los *control files* de la base de datos.
+
+En la sentencia anterior la clausula ```BLOCKSIZE``` es opcional.
+
+###Creando Redo Log Members
+
+En algunos casos podría no ser necesario crear un grupo completo de Redo Log Files. Podría ya existir un grupo pero no estar completo debido a que uno o más archivos fueron *dropped* o debido a una falla de disco. En este caso, se pueden agregar nuevos miembros a un grupo existente.
+
+Para crear nuevos miembros para un grupo existente se utiliza la clausula ```ALTER DATABASE``` junto con ```ADD LOGFILE MEMBER```. La siguiente sentencia agrega un nuevo redo log file al redo log group número 2.
+
+```sql
+ALTER DATABASE ADD LOGILE MEMBER '/oracle/dbs/log2b.rdo' TO GROUP 2;
+```
+
+Notese que los nombres de los miembros nuevos deben ser especificados, pero no neccesariamente el tamaño de los mismos. El tamaño de los miembros nuevos es determinado en base al de los miembros existentes en el grupo.
+
+Cuando se utiliza la sentencia ```ALTER DATABASE``` alternativamente se puede también identificar el grupo destino especificando todos los miembros del grupo en la clausula ```TO```, como se muestra en el siguiente ejemplo:
+
+```SQL
+ALTER DATABASE ADD LOGFILE MEMBER '/oracle/dbs/log2c.rdo' TO ('/oracle/dbs/log2a.rdo', '/oracle/dbs/log2b.rdo');
+```
+
+> ** NOTA **
+> Podría notarse que el status del nuevo log member se muestra como ```INVALID```. Esto es normal y sera cambiado a activo (blank) cuando sea usado por primera vez.
+
+###Reubicando y renombrando Redo Log Members
+
+Se pueden utilizar comandos del sistema operativo para mover los redo logs, luego mediante la clausula ```ALTER DATABASE``` informar a la base de datos sobre los nuevos nombres/ubicación de los archivos. Este procedimiento es necesario por ejemplo, si el disco actualmente usado para algunos redo log files va a ser inhabilitado permanentemente o si los data files y varios redo log files permancen en el mismo disco y van a ser separados para reducir la contención.
+
+Para renombrar miembros del redo log se requiere el privilegio ```ALTER DATABASE```. Adicionalmente se deben tener permisos en el sistema operativo para poder copiar los archivos al destino y privilegios para abrir y respaldar la base de datos.
+
+Antes de reubicar los redo log files, o realizar cualquier otro cambio estructural a la base de datos, se debe respaldar completamente la base de datos en caso de experimentar problemas mientras se realizan las operaciones. Como precaución despues de renombrar o reubicar un monto de redo log files, respalde inmediatamente el *control file* de la base de datos.
+
+Utilice los siguientes pasos para reubicar redo logs. El ejemplo utilizado para ilustrar los pasos asume lo siguiente:
+
+ * Los log files estan ubicados en dos discos ```diska``` y ```diskb```.
+ * El redo log esta duplexado, un grupo consiste de los miembros: ```/diska/logs/log1a.rdo``` y ```/diskb/logs/log1b.rdo```, y el segundo grupo se conforma por los miembros ```/diska/logs/log2a.rdo``` y ```/diskb/logs/log2b.rdo```.
+ * Los redo log files ubicados en el ```diska``` deben ser reubicados al ```diskc```. Los nuevos nombre de archivos reflejaran la nueva ubicación: ```/diskc/logs/log1c.rdo``` y ```/diskc/logs/log2c.rdo```.
+
+** Pasos para renombrar los redo log files **
+
+1. Dar de baja la base de datos: ```SHUTDOWN```
+2. Copiar los redo log files a la nueva ubicación mediante comandos del sistema operativo.
+   ```mv /diska/logs/log1a.rdo /diskc/logs/log1c.rdo```
+   ```mv /diska/logs/log2a.rdo /diskc/logs/log2c.rdo```
+3. Iniciar la base de datos, poner en mount, pero no en open.
+```SQL
+CONNECT / as SYSDBA
+STARTUP MOUNT
+```
+4. Renombrar los redo log members.
+   Utilizar el comando ```ALTER DATABASE``` junto con ```RENAME FILE``` para renombrar.
+```SQL
+ALTER DATABASE 
+  RENAME FILE '/diska/logs/log1a.rdo', '/diska/logs/log2a.rdo' 
+           TO '/diskc/logs/log1c.rdo', '/diskc/logs/log2c.rdo';
+```
+
+5. Abrir la base de datos para operación normal.
+   Las alteraciones al redo log toman efecto cuando la base de datos es abierta.
+```SQL
+ALTER DATABASE OPEN;
+```
+
+###Dropping de Redo Log Groups y Members
+
+En algunos casos se requiere eliminar un grupo entero de redo log members. Por ejemplo, para reducir el número de grupos en el redo log de una instancia. En una situación diferente podría requerirse eliminar uno o mas miembros especificos de un grupo, posiblemente debido a una falla de disco de modo que la base de datos no intente escribir a los archivos inaccesibles. En otras situaciones algunos redo log files podrían volverse inecesarios, por ejemplo, un archivo podría estar almacenado en una ubicación erronea.
+
+####Dropping Log Groups
+Para eliminar un redo log group se requiere el privilegio ```ALTER DATABASE```, antes de eliminar un redo log group considere las siguientes limitaciones y precauciones:
+
+ * Una instancia requiere al menos dos grupos de redo log files, independientemente del número de miembros en cada grupo.
+ * Solo se puede eliminar un redo log group si este esta inactivo. Si se desea eliminar el *current group* force primero un *log switch*.
+ * Asegurese de que un redo log group este archivado (Si el 'archiving' esta habilitado) antes de eliminarlo. Para comprobar esto revise la vista ```V$LOG```.
+```SQL
+SELECT GROUP#, ARCHIVED, STATUS FROM V$LOG;
+```
+       GROUP# ARC STATUS
+            1 YES ACTIVE
+            2 NO  CURRENT
+            3 YES INACTIVE
+            4 YES INACTIVE
+
+Elimine un redo log group mediante la clausula ```ALTER DATABASE``` junto con ```DROP LOGFILE```.
+
+La siguiente sentencia elimina el redo log group número 3:
+
+```SQL
+ALTER DATABASE DROP LOGFILE GROUP 3;
+```
+
+*Cuando se elimina un redo log group de la base de datos y no se esta utilizando Oracle Managed Files, los archivos no son eliminados del sistema operativo. Después de eliminar un redo log group, asegurese de eliminar los redo log files mediante comandos del sistema.*
+
+*Cuando se utiliza Oracle Managed Files, esta tarea es realizada automaticamente*
+
+####Dropping Redo Log Members
+
+Se requiere el privilegio ```ALTER DATABASE``` para eliminar un miembro de algun redo log group. Considere los siguiente antes de eliminar un redo log member:
+
+ * It is permissible to drop redo log files so that a multiplexed redo log becomes temporarily asymmetric. For example, if you use duplexed groups of redo log files, you can drop one member of one group, even though all other groups have two members each. However, you should rectify this situation immediately so that all groups have at least two members, and thereby eliminate the single point of failure possible for the redo log.
+ * An instance always requires at least two valid groups of redo log files, regardless of the number of members in the groups. (A group comprises one or more members.) If the member you want to drop is the last valid member of the group, you cannot drop the member until the other members become valid. To see a redo log file status, use the ```V$LOGFILE``` view. A redo log file becomes ```INVALID``` if the database cannot access it. It becomes ```STALE``` if the database suspects that it is not complete or correct. A stale log file becomes valid again the next time its group is made the active group.
+ * You can drop a redo log member only if it is not part of an active or current group. To drop a member of an active group, first force a log switch to occur.
+ * Make sure the group to which a redo log member belongs is archived (if archiving is enabled) before dropping the member. To see whether this has happened, use the V$LOG view.
+
+Para eliminar un redo log member especifico utilice la clausula ```ALTER DATABASE``` junto con ```DROP LOGFILE MEMBER```. La siguiente instruccion elimina el redo log ```/oracle/dbs/log3c.rdo```:
+
+```SQL
+ALTER DATABASE DROP LOGFILE MEMBER '/oracle/dbs/log3c.rdo';
+```
+
+Cuando se elimina un redo log member, el archivo de sistema operativo no es eliminado del disco, solamente se actualizan los ```control files``` de la base de datos para eliminar el member de la estructura de la base de datos. Utilice comandos del sistema operativo para eliminar el redo log file.
+
+Para eliminar un miembro de un grupo activo, primero se debe forzar un ```log switch```.
+
+##Forzando Log Switches
+
+
 
 
 ## Referencias externas
