@@ -30,6 +30,7 @@
  * Practicas con Oracle 11GR2
    * Activando el Archived Redo Log paso a paso **(ARCHIVELOG)**
    * Activando el **multiplexeo** del Redo Log
+   * Resolución de examen.
  * Referencias externas
 
 ##Bitacoras
