@@ -344,11 +344,158 @@ Si ```STATUS``` es *blank* para un miembro, entonces el archivo esta en uso.
 
 ## El modo ARCHIVELOG y como activarlo
 
+### Que es el Archived Redo Log
+
+Oracle database permite guardar uno o mas grupos de redo log files llenos a uno o mas destinos externos/offline, conocidos colectivamente como los ** archived redo log **. El proceso de convertir redo log files en *archived redo log files* es conocido como ** archiving ** este proceso solo es posible si la base de datos esta corriendo en ** modo **  ```ARCHIVELOG```. Se puede elgir ** archiving ** automatico o manual.
+
+Un *archived redo log file* es una copia de uno de los miembros llenos de algún *redo log group*. Por ejemplo, si se multiplexea el redo log, y el group1 contiene archivos miembros identicos ```a_log1``` y ```b_log1```, entonces el proceso archivados ** (ARCn) ** archivara uno de esos archivos miembro. En caso de que el ```a_log1``` se corrompa, entonces *(ARCn)* seguira archivando ```b_log1``` que es una copia identica. El *archived redo log* contiene una copia identica de cada group creado desde que se activo el *archiving*.
+
+Cuando la base de datos esta en modo ```ARCHIVELOG```, el proceso LGWR no puede reusar ni sobreescribir un redo log group hasta que este haya sido archivado. El proceso en segundo plano (ARCn) automatiza las operaciones de *archiving* cuando el *automatic archiving* esta habilitado. La base de datos inicia multiples procesos archivadores conforme son necesarios para garantizar que el archiveo de los redo log file llenos no falle en segundo plano.
+
+Los ** archived redo logs ** se pueden utilizar para:
+
+ * Recuperar una base de datos
+ * Actualizar una standby database
+ * Obtener información sobre el historial de la base de datos mediante la utilidad LogMiner
+
+### NOARCHIVELOG vs ARCHIVELOG
+
+La decisión de si activar o no el archiving de los redo log file groups llenos depende de los requerimientos de confiabilidad y disponibilidad de la aplicación que se ejecuta sobre la base de datos. Si no se puede permitir la perdida de datos en caso de la falla de algún disco, utilice el modo ```ARCHIVELOG```. El archiving de un redo log group lleno puede requerir de operaciones administrativas extra.
+
+#### Corriendo una base de datos en modo NOARCHIVELOG
+
+Cuando se ejecuta una base de datos en modo ```NOARCHIVELOG``` cada redo log group se vuelve disponible para reuso y sobreescritura despues de haber llenado y haber ocurrido un Log Switch.
+
+El modo ```NOARCHIVELOG``` protege a la base de datos de una falla de instancia pero no de una falla de medios. Solo los cambios mas recientes hechos a la base de datos (Que permanecen en los redo log files en linea) pueden ser usados para recuperar la instancia.
+
+En modo ```NOARCHIVELOG``` no se pueden realizar respaldos de tablespaces en modo online, no se pueden utilizar respaldos de tablespaces tomados anteriormente en modo ```ARCHIVELOG```. Para restaurar una base de datos corriendo en modo ```NOARCHIVELOG``` solo se pueden utilizar respaldos completos de TODA la base de datos tomados anteriormente mientras la base de datos estuvo cerrada. Por lo tanto si se decide operar la base de datos en modo ```NOARCHIVELOG``` se deben realizar respaldos completos en intervalos regulares y frecuentes.
+
+#### Corriendo una base de datos en modo ARCHIVELOG
+
+Cuando se ejecuta una base de datos en modo ```ARCHIVELOG``` el archivo de control de la base de datos indica que un redo log group lleno no puede ser reutilizado por el LGWR hasta que haya sido archivado completamente. Un redo log group se hace disponible para ser archivado justo despues de que ocurra un redo log switch.
+
+El archiving de los redo log files llenos tiene ciertas ventajas:
+
+ * Un respaldo de la base de datos, junto con los redo log files online y archivados, garantiza que se puede recuperar todas las transacciones que hayan sido *committed* en caso de alguna falla de disco o de sistema operativo.
+ * Si se mantienen los logs archivados disponibles, se puede utilizar un respaldo tomado mientras la base de datos esta abierta y en operación normal.
+ * Se puede mantener una *standby database* actualizada con su base de datos original aplicando continuamente los redo logs archivados originales al *standby*
+
+Se puede configurar una instancia para archivar los redo log groups llenos automaticamente o se puede realizar manualmente. Por conveniencia y eficiencia se recomienda realizarlo de manera automatica.
+
+La imagen ilustra como el proceso (ARCn) archiva los redo log groups llenos.
+![ARCHIVING REDO LOG](http://i.imgur.com/CUXKJTJ.gif)
+
+### Controlando el archiving
+
+ * Asignando el modo inicial de archiving
+ * Cambiando el modo de archiving de la base de datos
+ * Realizando archiving manual
+ * Ajustando el número de procesos de archiving
+
+#### Asignando el modo inicial de archiving
+
+Se realiza durante la creación de la base de datos ```CREATE DATABASE```. Usualmente se puede utilizar el modo default ```NOARCHIVELOG``` durante la creación de la base de datos, debido a que no hay necesidad de guardar la información generada durante este proceso.
+
+#### Cambiando el modo de archiving de la base de datos
+
+Se realiza mediante ```ALTER DATABASE``` junto con ```ARCHIVELOG``` o ```NOARCHIVELOG```. Para cambiar el modo de archiving se debe estar conectado a la base de datos con privilegios de administrador (```AS SYSDBA```).
+
+Los siguientes pasos cambian el modo de archiving de ```NOARCHIVELOG``` a ```ARCHIVELOG```:
+
+1. Dar de baja la instancia: ```SHUTDOWN IMMEDIATE```.
+2. **Respaldar la base de datos**. Antes de realizar cualquier cambio mayor a la base de datos siempre respalde para protejer contra cualquier problema.
+3. Edite el archivo de parametros de inicialización para incluir el parametro que especifica el destino para los redo log files archivados o hagalo desde la base de datos con una instrucción similar a: ```ALTER SYSTEM SET LOG_ARCHIVE_DEST_1='location=C:archive_log_offline' SCOPE=SPFILE;```.
+4. Inicie la instancia en modo ```MOUNT``` no ```OPEN```:
+   ```STARTUP MOUNT```. Para habilitar o deshabilitar el archiving la DB debe estar montada pero no abierta.
+5. Cambie el modo de archiving de la base de datos. Luego abra la base de datos para operaciones normales.
+```SQL
+ALTER DATABASE ARCHIVELOG;
+ALTER DATABASE OPEN;
+```
+6. Dar de baja la base de datos. ```SHUTDOWN IMMEDIATE```.
+7. Respalde la base de datos.
+   Cambiar el modo de archiving de la base de datos actualiza el control file. Despues de cambiar el modo de archiving se deben respaldar todos los datafiles y controlfiles. Cualquier respaldo anterior no sirve mas debido a que fue tomado en modo ```NOARCHIVELOG```.
+
+#### Realizando archiving manual.
+
+@TODO: Add brief overview from original source here.
+[Documentación oficial](http://docs.oracle.com/cd/E11882_01/server.112/e25494/archredo.htm#ADMIN11336)
+
+#### Ajustando el número de procesos de archiving.
+
+El parametro de inicialización ```LOG_ARCHIVE_MAX_PROCESSES``` especifica el número de procesos ARCn que la base de datos arranca inicialmente. El default son 4 procesos.
+
+La siguiente instrucción configura la base de datos para arrancar 6 ARCn procesos al iniciar.
+
+```SQL
+ALTER SYSTEM SET LOG_ARCHIVE_MAX_PROCESSES=6;
+```
+
+La instrucción también tiene un efecto inmediato sobre la instancia que esta en ejecución. Incremente o decrementa el número de procesos ARCn en ejecución a 6.
+
+### Consultando información sobre el Archived Redo Log
+
+Se puede ver información sobre el Archived Redo Log utilizando vistas dinamicas de rendimiento o mediante el comando ```ARCHIVE LOG LIST```.
+
+** Vistas del Archived Redo Log **
+
+| Vista dinamica de rendimiento | Descripción                                              |
+|-------------------------------|----------------------------------------------------------|
+| ```V$DATABASE```              | Muestra si la base de datos esta en ```ARHIVELOG``` o ```NOARCHIVELOG```, también indica se se ha especificado el modo ```MANUAL```.             |
+| ```V$ARCHIVED_LOG```          | Muestra información historia sobre logs archivados       |
+| ```V$ARCHIVE_DEST```          | Describe la instancia actual, los destinos de archive y el valor, modo y status actual de tales destinos                                              |
+| ```V$ARCHIVE_PROCESSES```     | Muestra información sobre el estado de los procesos de archiving de la instancia.                                                                 |
+| ```V$BACKUP_REDOLOG```        | Contiene información sobre cualquier respaldo de los logs archivados.                                                                                |
+| ```V$LOG```                   | Muestra todos los redo log groups de la base de datos e indica cuales necesitan ser archivados.                                                    |
+| ```V$LOG_HISTORY```           | Contiene información historica del log, tal como que logs han sido archivados y el rango SCN de cada log archivado.                                  |
+
+Por ejemplo, el siguiente query muestra que redo log group requiere archiving:
+
+```SQL
+SELECT GROUP#, ARCHIVED FROM SYS.V$LOG;
+```
+    GROUP#     ARC
+    --------   ---
+           1   YES
+           2   NO
+
+Para ver el modo de archiving actual, consulte la vista ```V$DATABASE```:
+
+```SQL
+SELECT LOG_MODE FROM SYS.V$DATABASE;
+```
+    LOG_MODE
+    ------------
+    NOARCHIVELOG
+
+### El comando ARCHIVE LOG LIST
+
+Este comando muestra información sobre el modo de archiving de la instancia:
+
+```SQL
+ARCHIVE LOG LIST
+```
+    Database log mode              Archive Mode
+    Automatic archival             Enabled
+    Archive destination            D:\oracle\oradata\IDDB2\archive
+    Oldest online log sequence     11160
+    Next log sequence to archive   11163
+    Current log sequence           11163
+
+Esto nos da toda la información necesaria sobre la configuración del modo de archiving de la instancia. El resultado anterior indica que:
+
+ * La base de datos esta en modo ```ARCHIVELOG```.
+ * El modo *automatic archiving* esta habilitado
+ * El destino del redo log archivado es: *D:\oracle\oradata\IDDB2\archive*
+ * El redo log lleno mas antiguo tiene un número de secuencia de 11160
+ * El siguiente redo log group llenado a archivar tiene un número de secuencia de 11163
+ * El actual redo log file tiene un número de secuencia d 11163.
+
 
 ## Referencias externas
 
  * Documentación oficial de Oracle: [Managing the Redo Log](http://docs.oracle.com/cd/E11882_01/server.112/e25494/onlineredo.htm#ADMIN007)
- * Documetnación oracle sobre
+ * Documentación oficial de Oracle: [Managing Archived Redo Logs](http://docs.oracle.com/cd/E11882_01/server.112/e25494/archredo.htm#ADMIN008)
  * Otros enlaces
  * ...
 
