@@ -15,8 +15,15 @@
    * Planeando el tamaño de bloque de los Redo Log Files
    * Decidiendo el número de Redo Log Files
    * Controlando el Archive Lag
- * Creando grupos y miembros del redo log
- * ARCHIVE LOG
+ * Grupos y miembros del redo log
+   * Creando Redo Log Groups
+   * Creando Redo Log Members
+   * Reubicando y renombrando Redo Log Members
+   * Dropping de Redo Log Groups y Members
+ * Forzando Log Switches
+ * Vistas del diccionario de datos para el REDO LOG
+ * Activando el **multiplexeo** del Redo Log
+ * El modo **ARCHIVE LOG** y como activarlo
  * Referencias externas
 
 ##Bitacoras
