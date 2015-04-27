@@ -1,7 +1,8 @@
 #Operación y mantenibilidad
 
 ##Contenido
- * Bitacoras
+ * [Bitacoras](#bitacoras)
+   * [Funciones especificas de las bitacoras](#funciones-especificas-de-las-bitacoras)
  * REDO Logs
  * ARCHIVE LOG
  * Planificación de los REDO Logs
