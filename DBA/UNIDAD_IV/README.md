@@ -3,12 +3,12 @@
 ##Contenido
  * [Bitacoras](#bitacoras)
    * [Funciones especificas de las bitacoras](#funciones-especificas-de-las-bitacoras)
- * Redo Log
-   * Contenido de un Redo Log
-   * Como oracle database escribe al Redo Log
-   * Redo Log File Activo (Actual) e inactivos
-   * Log Switches y Log Sequence Numbers
- * Planificación del Redo Log
+ * [Redo Log](#redo-log)
+   * [Contenido de un Redo Log](#contentido-de-un-redo-log)
+   * [Como oracle database escribe al Redo Log](#como-oracle-database-escribe-al-redo-log)
+   * [Redo Log File Activo (Actual) e inactivos](redo-log-file-activo-actual-e-inactivos)
+   * [Log Switches y Log Sequence Numbers](#log-switches-y-log-sequence-numbers)
+ * [Planificación del Redo Log](#planeaci%C3%B3n-del-redo-log)
    * Multiplexeo de los Redo Log Files
    * Colocando miembros del Redo Log en discos diferentes
    * Planeando el tamaño de los Redo Log Files
@@ -34,7 +34,7 @@
  * Referencias externas
 
 ##Bitacoras
-En muchos DBMS la bitacora incluye todo tipo de consultas incluyendo aquellas que no modifican los datos. La operación ROLLBACK esta basada en el uso de una bitacora.
+En muchos DBMS la bitacora registra todo tipo de consultas realizadas incluyendo aquellas que no modifican los datos. La operación ROLLBACK esta basada en el uso de una bitacora.
 
 EL DBMS mantiene una bitacora o diario donde se registran los detalles de todas las operaciones de actualización. En particular los valores inicial y final del objeto modificado. Esta bitacora puede estar almacenada en disco o en cinta.
 
@@ -60,11 +60,11 @@ La estructura crucial para operaciones de recuperación de la base de datos es e
 
 ###Contentido de un REDO Log
 
-Los archivos de REDO estan llenos de ** registros redo **, un registro redo se compone de un grupo de **vectores de cambio**, cada uno de los cuales es la descripción de un cambio hecho a un (y solo un) bloque en la base de datos. Por ejemplo, si se cambia el valor del campo ```SALARY``` en la tabla ```EMPLOYEE```, se genera un *registro redo* que contiene los vectores de cambio que describen los cambios a el bloque de segmento de datos de la tabla, el bloque de segmento de datos de undo y la tabla de transacción de los segmentos de undo.
+Los archivos de REDO estan llenos de **registros redo** , un registro redo se compone de un grupo de **vectores de cambio**, cada uno de los cuales es la descripción de un cambio hecho a un (y solo un) bloque en la base de datos. Por ejemplo, si se cambia el valor del campo ```SALARY``` en la tabla ```EMPLOYEE```, se genera un *registro redo* que contiene los vectores de cambio que describen los cambios a el bloque de segmento de datos de la tabla, el bloque de segmento de datos de undo y la tabla de transacción de los segmentos de undo.
 
 Los *registros redo* almacenan información que se puede utilizar para reconstruir todos los cambios hechos a una base de datos,  incluyendo segmentos de undo. Por lo tanto, el redo Log también proteje datos de ROLLBACK. Cuando se recupera la base de datos utilizando datos de redo, la base de datos lee los vectores de cambio en los registros redo y se aplican los cambios a los bloques reelevantes.
 
-Los *registros redo* son almacenados de manera circular en el **redo log buffer** de la SGA (System Global Area) y son escritos a uno de los archivos *redo log* por un proceso en segundo plano denominado **Log Writer(LGWR)**. Cada vez que una transacción es *Committed* (Confirmada | Asegurada), LGWR escribe los registros redo de la transacción desde el redo log buffer a un redo log file y asigna un **system change number (SCN)** para identificar los registros redo de cada transacción confirmada. Solo cuando todos los registros redo asoiados con la transacción estan seguros en disco dentro de los *logs online* se notifica al proceso del usuario que la transacción ha sido *committed | confirmada | asegurada*.
+Los *registros redo* son almacenados de manera circular en el **redo log buffer** de la SGA (System Global Area) y son escritos a uno de los archivos *redo log* por un proceso en segundo plano denominado **Log Writer(LGWR)**. Cada vez que una transacción es *Committed* (Confirmada | Asegurada), LGWR escribe los registros redo de la transacción desde el redo log buffer a un redo log file y asigna un **system change number (SCN)** para identificar los registros redo de cada transacción confirmada. Solo cuando todos los registros redo asociados con la transacción estan seguros en disco dentro de los *logs online* se notifica al proceso del usuario que la transacción ha sido *committed | confirmada | asegurada*.
 
 Los registros redo también pueden ser escritos a un redo log file antes de que la transacción correspondiente sea committed/confirmada, si el redo log buffer se llena u otra transacción es committed/confirmada, LGWR vacia todos los registros de redo en el redo log buffer hacia un redo log file, incluso aunque algunos registros redo no hayan sido committed/confirmados, si es necesario la base de datos puede hacer ROLLBACK de esos cambios.
 
@@ -74,13 +74,14 @@ El *redo log* de una base de datos consiste de dos o más *redo log files*. La b
 
 LGWR escribe en los redo log files de manera circular, cuando el actual redo log file se llena, LGWR comienza a escribir en el siguiente redo log file disponible. Cuando el último redo log file disponible se llena, LGWR regresa al primer redo log file y escribe en el, inciando de nuevo el ciclo.
 
-Los redo log files que ya estan llenos, se hacen disponibles para ser reutilizados dependiendo de si *archiving* esta habilitado o no:
+Los redo log files que ya estan llenos, se hacen disponibles para ser reutilizados dependiendo de si el *archiving* esta habilitado o no:
 
  * Si la base de datos esta en modo **NOARCHIVELOG**, un redo log file que ya esta lleno se hace disponible despues de que los cambios registrados en él ya han sido escritos a los datafiles.
  * Si la base de datos esta en modo **ARCHIVELOG**, un redo log file lleno se hace disponible para el LGWR despues de que los cambios registrados en el han sido escritos a los datafiles **Y** después de que el redo log file ha sido archivado.
 
 
 **Uso circular de los Redo Log Files por LGWR:**
+
 *Los números del lado derecho indican el orden en que LGWR escribe a cada archivo en cada ciclo.*
 
 ![Reuse of Redo Log Files by LGWR](http://i.imgur.com/tN0dJZi.gif)
@@ -123,6 +124,7 @@ El **multiplexeo** se implementa definiendo grupos de redo log files. Un **grupo
 **Redo Log Files multiplexados:**
 
 ![Redo Log Files multiplexados](http://i.imgur.com/FI6gna3.gif)
+
 En la figura ```A_LOG1``` y ```B_LOG1``` son miembros del group1. ```A_LOG2``` y ```B_LOG2``` son miembros del group2. Los miembros de un grupo deben tener el mismo tamaño.
 
 Cada miembro de un log file group es concurrentemente activo, o sea, concurrentemente escrito por el LGWR, como se indica por los log sequence numbers identicos asignados por el LGWR. En los grupos de la imagen, primero el LGWR escribe concurrentemente tanto a ```A_LOG1``` y ```B_LOG1```. Después escribe concurrentemente a ```A_LOG2``` y ```B_LOG2``` y asi sucesivamente. LGWR nunca escribe concurrentemente a miembros de grupos diferentes (Como por ejemplo ```A_LOG1``` y ```B_LOG2```).
@@ -555,8 +557,6 @@ SELEC * FROM V$LOGFILE;
  * Documentación oficial de Oracle: [Managing Archived Redo Logs](http://docs.oracle.com/cd/E11882_01/server.112/e25494/archredo.htm#ADMIN008)
  * Otros enlaces
  * ...
-
-
 
 
 
