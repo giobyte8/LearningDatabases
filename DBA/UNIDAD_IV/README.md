@@ -29,7 +29,7 @@
    * Consultando información sobre el Archived Redo Log
  * Practicas con Oracle 11GR2
    * Activando el Archived Redo Log paso a paso **(ARCHIVELOG)**
-   * Activando el **multiplexeo** del Redo Log
+   * [Activando el **multiplexeo** del Redo Log](#activando-el-multiplexeo-del-redo-log)
    * Resolución de examen.
  * Referencias externas
 
@@ -132,7 +132,7 @@ Cada miembro de un log file group es concurrentemente activo, o sea, concurrente
 > **NOTA**
 > Oracle recomienda multiplexar el redo log de la base de datos. La perdida de los datos del redo log puede ser catastrofica en caso de requerir un recovery. Notese que cuando se multiplexea el redo log aumenta el monto de operaciones I/O de la base de datos. Dependiendo de la configuración esto podría impactar en el rendimiento.
 
-*Consulte la sección [activando el multiplexeo del redo log]() para un detallado paso a paso.*
+*Consulte la sección [activando el multiplexeo del redo log](#activando-el-multiplexeo-del-redo-log) para un detallado paso a paso.*
 
 ###Colocando miembros del Redo Log en discos diferentes
 
