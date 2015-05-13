@@ -10,6 +10,7 @@ Esto es una colección estructurada de notas/articulos/tutoriales/enlaces relaci
     - [Instalación de Oracle Linux y Oracle Database 11GR2](./DBA/UNIDAD_II)
     - [Configuración y adminitración del espacio en disco](./DBA/UNIDAD_III)
     - [Operación y mantenimiento](./DBA/UNIDAD_IV)
+    - [Respaldo y recuperación](./DBA/UNIDAD_V)
  - Structured Query Language [SQL]
     - Introducción a SQL
     - Lenguaje de definición de datos [DDL]
