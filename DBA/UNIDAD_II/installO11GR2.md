@@ -1,5 +1,14 @@
 # Instalar Oracle 11GR2 sobre Oracle Linux 6
 
+## Contenido
+
+ 1. Configuración de requisitos previos
+ 2. Instalación
+ 3. Arranque de la instancia
+
+
+## Configuración de requisitos previos
+
 #### Archivo hosts
 El archivo 'etc/hosts' debe contener un nombre completamente calificado para la maquina.
 
@@ -95,15 +104,61 @@ La extracción de los archivos genera una carpeta llamada *database*, dirigete a
 
 Procede con la instalación mediante el Oracle Universal Installer
 
-#### Instalación a través del OUI
+## Instalación a través del OUI
 
 Una vez que el instalador grafico inicia, seguimos las instrucciones del asistente para completar la instalación.
 
-La instalación de ejemplo durante la creacion de este documento:
+La instalación de ejemplo en orden secuencial durante la creacion de este documento:
+
+![paso1](http://i.imgur.com/2vjcS0a.png)
+![paso2](http://i.imgur.com/806BXm5.png)
+![paso3](http://i.imgur.com/97TISqR.png)
+![paso4](http://i.imgur.com/qU77r2x.png)
+![paso5](http://i.imgur.com/bx0U5Ut.png)
+![paso6](http://i.imgur.com/oU7p6YI.png)
+![paso7](http://i.imgur.com/wpU8ad8.png)
+![paso8](http://i.imgur.com/zJe0hTr.png)
+![paso9](http://i.imgur.com/hFrPWN0.png)
+![paso10](http://i.imgur.com/aG679OY.png)
 
 
+En los ultimos pasos del proceso, se nos solicitara ejecutar un par de scripts como usuario root manualmente. Una vez que la ejecución de dichos scripts se haga exitosamente, nuestra base de datos estara instalada.
 
 
+## Arranque de la instancia.
 
+Para poder iniciar la instancia de la base de datos, ejecutamos sqlplus desde la terminal y entramos como usuario sys
 
+```bash
+sqlplus sys as sysdba
+```
+Dado que estamos logueados como oracle, no es necesario indicar ninguna contraseña para entrar a la instancia.
 
+Una vez en la consola de sqlplus, levantamos la instancia mediante el comando:
+```sql
+STARTUP
+```
+
+> Nota para resolver el error (ORA-01078: failure in processing system parameters)
+> Se debe a que no esta creado el PFILE 'initORCL.ora', lo creamos desde la misma consola de sqlplus mediante el comando: 
+
+```sql
+CREATE PFILE FROM SPFILE='/u01/app/oracle/product/11.2.0/db_1/dbs/spfileorcl.ora';
+```
+
+La instancia iniciara normalmente con el siguiente mensaje:
+
+```
+SQL> STARTUP
+ORACLE instance started.
+
+Total System Global Area  417546240 bytes
+Fixed Size		    2213936 bytes
+Variable Size		  268437456 bytes
+Database Buffers	  142606336 bytes
+Redo Buffers		    4288512 bytes
+Database mounted.
+Database opened.
+```
+
+Ahora nuestra instancia esta lista para operación.
