@@ -15,7 +15,7 @@ Por ejemplo:
 Utilice la configuración automatica para configurar parametros y requisitos de oracle antes de instalar:
 
 ```bash
-# yum install oracle-rdbms-server-11gR2-preinstall
+yum install oracle-rdbms-server-11gR2-preinstall
 ```
 
 #### Configuración adicional
@@ -38,18 +38,20 @@ Configura la seguridad como permisiva, editando el archivo "/etc/selinux/config"
 
 Una vez hechos estos cambios, ** reinicia el servidor **.
 
+- - -
+
 Crea los directorios para la instalación de oracle:
 ```bash
-~# mkdir -p /u01/app/oracle/product/11.2.0/db_1
-~# chown -R oracle:oinstall /u01
-~# chmod -R 775 /u01
+mkdir -p /u01/app/oracle/product/11.2.0/db_1
+chown -R oracle:oinstall /u01
+chmod -R 775 /u01
 ```
 
 Logueate como root y lanza el siguiente comando:
 
-` # xhost +<machine-name> `
+` ~# xhost +<machine-name> `
 
-Example: ` # xhost +localhost `
+Ejemplo: `xhost +localhost `
 
 Logueate como usuario oracle y agrega las siguientes lineas al final del archivo ".bash_profile"
 
@@ -59,10 +61,10 @@ TMP=/tmp; export TMP
 TMPDIR=$TMP; export TMPDIR
 
 ORACLE_HOSTNAME=localhost.localdomain; export ORACLE_HOSTNAME
-ORACLE_UNQNAME=DB11G; export ORACLE_UNQNAME
+ORACLE_UNQNAME=ORCL; export ORACLE_UNQNAME
 ORACLE_BASE=/u01/app/oracle; export ORACLE_BASE
 ORACLE_HOME=$ORACLE_BASE/product/11.2.0/db_1; export ORACLE_HOME
-ORACLE_SID=DB11G; export ORACLE_SID
+ORACLE_SID=ORCL; export ORACLE_SID
 
 PATH=/usr/sbin:$PATH; export PATH
 PATH=$ORACLE_HOME/bin:$PATH; export PATH
@@ -74,13 +76,30 @@ CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib; export CLASSPATH
 #### Instalación
 Logueate como usuario oracle y ejecuta:
 
-` DISPLAY=<machine-name>:0.0; export DISPLAY `
+```bash
+DISPLAY=<machine-name>:0.0; export DISPLAY`
+```
+Reemplaza `<machine-name>` por el nombre de la maquina o en su defecto 'localhost'.
 
-Inicia Oracle Universal Installer (OUI) dirigiendote a la carpeta 'database' y ejecutando:
+##### Extrae los archivos de instalación
+Los archivos de instalación de oracle generalmente se encuentran en dos archivos .zip, copia ambos archivos al mismo directorio dentro del servidor y descomprime mediante
+
+```bash
+unzip oracle
+```
+
+#### Ejecución de OUI
+La extracción de los archivos genera una carpeta llamada *database*, dirigete a dicha carpeta e inicia el **Oracle Universal Installer (OUI)** ejecutando:
 
 `./runInstaller	`
 
 Procede con la instalación mediante el Oracle Universal Installer
+
+#### Instalación a través del OUI
+
+Una vez que el instalador grafico inicia, seguimos las instrucciones del asistente para completar la instalación.
+
+La instalación de ejemplo durante la creacion de este documento:
 
 
 

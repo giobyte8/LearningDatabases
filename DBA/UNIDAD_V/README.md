@@ -1,7 +1,5 @@
 #Unidad V | Respaldo y recuperación.
 
-...
-
 ## Contenido
 
  1. Respaldos y recuperación
@@ -14,6 +12,7 @@
  3. Backups logicos
  4. Flashback area
  5. Recover, RMAN ...
+ 6. Practicas sobre 'Respaldo y recuperación'
 
 
 ## Respaldos y recuperación.
@@ -122,7 +121,7 @@ Para realizar un export la DB debe estar abierta. Export asegura la consistencia
 #### Modos de export
 Existen tres modos de realizar una exportación de datos.
 
-**Modo tabla**
+** Modo tabla **
 Exporta las definiciones de tabla, los datos, los derechos del propietario, los indices del propiertario, las restricciones de la tablay los disparadores asociados a la tabla.
 
 ** Modo usuario **
