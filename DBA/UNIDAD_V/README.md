@@ -2,7 +2,7 @@
 
 ## Contenido
 
- 1. Respaldos y recuperación
+ 1. Respaldos y recuperación<br/>
     1.1. Sobre el modo ARCHIVE a la hora de los Backups
  3. 1 Principios de Backup
  2. Backups fisicos
