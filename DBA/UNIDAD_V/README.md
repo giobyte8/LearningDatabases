@@ -2,13 +2,13 @@
 
 ## Contenido
 
- 1. Respaldos y recuperación<br/>
-    1.1. Sobre el modo ARCHIVE a la hora de los Backups
- 3. 1 Principios de Backup
- 2. Backups fisicos
-      2.1 Backups de Sistema Operativo
-      2.2 Backups de la base de datos en frio
-      2.3 Backups de la base de datos en caliente
+ 1. Respaldos y recuperación <br/>
+    1.1. Sobre el modo ARCHIVE a la hora de los Backups <br/>
+    1.2. Principios de Backup
+ 2. Backups fisicos <br/>
+    2.1 Backups de Sistema Operativo <br/>
+    2.2 Backups de la base de datos en frio <br/>
+    2.3 Backups de la base de datos en caliente <br/>
  3. Backups logicos
  4. Flashback area
  5. Recover, RMAN ...
