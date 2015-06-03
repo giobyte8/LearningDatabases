@@ -22,7 +22,7 @@ Para conseguir un funcionamiento seguro de la DB y tener una estrategia de recup
 Los *backups* se pueden clasificar en **físicos** y **lógicos**. Los físicos se realizan cuando se copian los ficheros que soportan a la DB. entre estos se encuentra los *backups de SO*, los *backups en frio* y los *backups en caliente*.
 Los **backups lógicos** solo extraen los datos de las tablas utilizando comandos SQL y se realizan con la utilidad *export/import*.
 
-### Sobre el modo ARCHIVE en el tema de respaldos y recuperación.
+### Sobre el modo ARCHIVE LOG en el tema de respaldos y recuperación.
 Una de las deciciones más importantes que un DBA debe tomar, es si arrancar o no en modo ARCHIVELOG.
 
 **Ventajas**.
@@ -41,11 +41,11 @@ Un *backup* válido **es una copia de la información sobre la DB necesaria para
 
 #### Reglas básicas de backup y diseño de la DB
 
-Antes de nada, es muy importante entender ciertas reglas que determinan la situación de los archivos y otras consideraciones que afectarán al esquema de *backup*.
+Antes que nada, es muy importante entender ciertas reglas que determinan la situación de los archivos y otras consideraciones que afectarán al esquema de *backup*.
 
 Es recomendable **archivar los redo log en disco, copiarlos a cinta, pero siempre en un disco diferente del que soporta los ficheros de datos y de redo log activos.**
 
-Los archivos copia **no deben estar en el mismo dispositivo que los originales**. No siempre hay que pasar las copias a cinta, ya que si se dejan en un disco se acelera la recuperación. Ademas, si se pasan a cinta y se mantienen en disco, se puede sobrebibir a diversos fallos de dispositivo.
+Los archivos copia **no deben estar en el mismo dispositivo que los originales**. No siempre hay que pasar las copias a cinta, ya que si se dejan en un disco se acelera la recuperación. Ademas, si se pasan a cinta y se mantienen en disco, se puede sobrevivir a diversos fallos de dispositivo.
 
 Se deberían **mantener diferentes copias de los archivos de control, colocadas en diferentes discos con diferentes controladores.**
 
@@ -80,12 +80,12 @@ Este tipo de *backup* es el más sencillo de ejecutar, aunque **consume mucho ti
 ### Backups en frio
 Los *backups* en frio **implican parar la DB en modo normal y copiar todos los ficheros sobre los que se asienta.** Antes de parar la DB se deben detener todas las aplicaciones que estén trabajando con una conexión a la DB. Una vez hecho el respaldo de los archivos la DB se puede arrancar de nuevo.
 
-El primer paso es parar la DB con el comando shutdown normal. Si la DB se tiene que parar con *immediate* o *abort* debe rearrancarse con el modo *RESTRICT* y vuelta a parae en modo normal. Después se copian los archivos de datos, los de redo log y los de control, además de los redo log archivados y aún no copiados.
+El primer paso es parar la DB con el comando shutdown normal. Si la DB se tiene que parar con *immediate* o *abort* debe rearrancarse con el modo *RESTRICT* y vuelta a parar en modo normal. Después se copian los archivos de datos, los de redo log y los de control, además de los redo log archivados y aún no copiados.
 
 ### Backups en caliente
 Los *backups* en caliente **se realizan mientras la DB está abierta y operativa en modo ARCHIVELOG**. Este tipo de respaldo consiste en **copiar todos los ficheros correspondientes a un tablespace determinado, los archivos redo log archivados y los archivos de control**. Esto se hace para cada *tablespace* de la DB.
 
-Si la implantación de DB requiere disponibilidad de la misma 24/7, no se pueden realizar backups en frio. Para realizarun backup en caliente debemos trabajar con la DB en modo ARCHIVELOG. El procedimiento de backup en caliente es bastante parecido al frio.
+Si la implantación de DB requiere disponibilidad de la misma 24/7, no se pueden realizar backups en frio. Para realizar un backup en caliente debemos trabajar con la DB en modo ARCHIVELOG. El procedimiento de backup en caliente es bastante parecido al frio.
 
 ##### Comandos para respaldo en caliente.
 Existen dos comandos adicionales: ```BEGIN BACKUP``` antes de comenzar y ```END BACKUP``` al finalizar el *backup*. Por ejemplo, antes y después de efectuar un backup del tablespace users, se deberían ejecutar las sentencias:
@@ -95,7 +95,7 @@ ALTER TABLESPACE USERS BEGIN BACKUP;
 ALTER TABLESPACE USERS END BACKUP;
 ```
 
-Asi como el *backup* en frio permitia realizar una copia de toda la DB al tiempo, en los backups en caliente la unidad de tratamiento es el *tablespace*. El backup en caliente **consiste en la copia de los ficheros de datos (por tablespace), el actual fichero de control y todos los dicheros redo log archivados creados durante el periodo de backup**. También se necesitaran todos los archivos redo log archivados despues del backup en caliente para conseguir una recuperación total.
+Asi como el *backup* en frio permitia realizar una copia de toda la DB al tiempo, en los backups en caliente la unidad de tratamiento es el *tablespace*. El backup en caliente **consiste en la copia de los ficheros de datos (por tablespace), el actual fichero de control y todos los ficheros redo log archivados creados durante el periodo de backup**. También se necesitaran todos los archivos redo log archivados despues del backup en caliente para conseguir una recuperación total.
 
 ## Backups lógicos con EXPORT/IMPORT
 Estas utilidades permiten al DBA **hacer copias de determinados objetos de la DB, así como restaurarlos o moverlos de una DB a otra.** Estas herramientas utilizan comandos SQL para obtener el contenido de los objetos y escribirlos/leerlos a los archivos de respaldo.
@@ -121,13 +121,13 @@ Para realizar un export la DB debe estar abierta. Export asegura la consistencia
 #### Modos de export
 Existen tres modos de realizar una exportación de datos.
 
-** Modo tabla **
-Exporta las definiciones de tabla, los datos, los derechos del propietario, los indices del propiertario, las restricciones de la tablay los disparadores asociados a la tabla.
+**Modo tabla**
+Exporta las definiciones de tabla, los datos, los derechos del propietario, los indices del propiertario, las restricciones de la tabla y los disparadores asociados a la tabla.
 
-** Modo usuario **
+**Modo usuario**
 Exporta todo lo del modo de Tabla más los *clusters*, enlaces de DB, vistas, sinónimos privados, secuencias, procedimientos, etc del usuario.
 
-** Modo DB Entera **
+**Modo DB Entera**
 Además de todo lo del modo usuario, exporta los roles, todos los sinónimos, los privilegios del sistema, las definiciones de los tablespaces, las cuotas en los tablespaces, las definiciones de los segmentos de rollback, las opciones de auditoria del sistema, todos los diaparadores y los perfiles.
 
 El modo **DB Entera** puede ser dividido en tres casos: Completo, Acumulativo e Incremental. Estos dos últimos se toman menos tiempo que el completo y permiten exportar solo los cámbios en los datos y en las definiciones.
