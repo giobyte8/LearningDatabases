@@ -20,7 +20,7 @@
 Para conseguir un funcionamiento seguro de la DB y tener una estrategia de recuperación eficaz ante fallos criticos, se debe implementar una estrategia de copias de seguridad, backup y de recuperación. El primer paso es definir las caracteristicas fundamentales de la implementación, luego es establecer los planes de copias de seguridad y recuperación que nos permitan asegurar los objetivos.
 
 Los *backups* se pueden clasificar en **físicos** y **lógicos**. Los físicos se realizan cuando se copian los ficheros que soportan a la DB. entre estos se encuentra los *backups de SO*, los *backups en frio* y los *backups en caliente*.
-Los ** backups lógicos ** solo extraen los datos de las tablas utilizando comandos SQL y se realizan con la utilidad *export/import*.
+Los **backups lógicos** solo extraen los datos de las tablas utilizando comandos SQL y se realizan con la utilidad *export/import*.
 
 ### Sobre el modo ARCHIVE en el tema de respaldos y recuperación.
 Una de las deciciones más importantes que un DBA debe tomar, es si arrancar o no en modo ARCHIVELOG.
