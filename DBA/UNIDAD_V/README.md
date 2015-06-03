@@ -3,8 +3,8 @@
 ## Contenido
 
  1. Respaldos y recuperación
-	1.1 Sobre el modo ARCHIVE a la hora de los Backups
-	1.2 Principios de Backup
+    1 Sobre el modo ARCHIVE a la hora de los Backups
+    1 Principios de Backup
  2. Backups fisicos
     2.1 Backups de Sistema Operativo
     2.2 Backups de la base de datos en frio
