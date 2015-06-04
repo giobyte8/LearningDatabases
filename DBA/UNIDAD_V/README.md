@@ -128,7 +128,7 @@ Exporta las definiciones de tabla, los datos, los derechos del propietario, los 
 Exporta todo lo del modo de Tabla más los *clusters*, enlaces de DB, vistas, sinónimos privados, secuencias, procedimientos, etc del usuario.
 
 **Modo DB Entera**
-Además de todo lo del modo usuario, exporta los roles, todos los sinónimos, los privilegios del sistema, las definiciones de los tablespaces, las cuotas en los tablespaces, las definiciones de los segmentos de rollback, las opciones de auditoria del sistema, todos los diaparadores y los perfiles.
+Además de todo lo del modo usuario, exporta los roles, todos los sinónimos, los privilegios del sistema, las definiciones de los tablespaces, las cuotas en los tablespaces, las definiciones de los segmentos de rollback, las opciones de auditoria del sistema, todos los disparadores y los perfiles.
 
 El modo **DB Entera** puede ser dividido en tres casos: Completo, Acumulativo e Incremental. Estos dos últimos se toman menos tiempo que el completo y permiten exportar solo los cámbios en los datos y en las definiciones.
 
