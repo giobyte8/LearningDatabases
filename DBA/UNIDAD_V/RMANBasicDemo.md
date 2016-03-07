@@ -149,6 +149,45 @@ SELECT LAST_NAME FROM RGIO.GOT_CHARACTERS;
 
 # Prueba sobre la base de datos completa
 
+## Creando respaldos
+Creamos un respaldo de toda la base de datos desde RMAN
+```bash
+RMAN> BACKUP DATABASE PLUS ARCHIVELOG;
+
+# Verificamos el respaldo (Opcional)
+RMAN> BACKUP VALIDATE DATABASE ARCHIVELOG ALL;
+```
+
+## Falla provocada
+Eliminamos los datafiles de la base de datos.
+```bash
+cd /u01/app/oracle/oradata/orcl/
+rm example01.dbf rdemo.dbf system01.dbf temp01.dbf undotbs01.dbf users01.dbf
+```
+
+Con cualquier query o DML podemos verificar que la base de datos ya no funciona.
+
+
+## Restauración y recuperación del fallo
+```bash
+#RMAN> RESTORE DATABASE PREVIEW SUMMARY;
+
+# Recuperación de la base de datos
+# -----------------------------------
+
+# Iniciamos en modo mount
+RMAN> STARTUP FORCE MOuNT;
+
+# Restauramos los archivos de la base de datos desde el respaldo
+RMAN> RESTORE DATABASE;
+
+# Recuperamos la base de datos
+RMAN> RECOVER DATABASE;
+
+# Iniciamos la base de datos para operaciones normales
+RMAN> ALTER DATABASE OPEN;
+```
+
 
 ## FAQ | Problemas frecuentes.
 
