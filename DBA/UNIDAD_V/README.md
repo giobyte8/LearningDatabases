@@ -1,4 +1,4 @@
-#Unidad V | Respaldo y recuperación.
+# Unidad V | Respaldo y recuperación.
 
 ## Contenido
 
@@ -151,3 +151,6 @@ EXP USERID=SYSTEM/MANAGER FULL=Y INCTYPE=INCREMENTAL CONSTRAINTS=Y FILE=INCREMEN
 ```
 
 La **politica de exportación** puede ser la siguiente: realizar una exportación completa el dia 1 (por ejemplo el domingo), y luego realizar exportaciones incrementales el resto de la semana. De este modo de lunes a sábado sólo se exportarán aquellas tablas modificadas, ahorrando tiempo en el proceso.
+
+---
+## RMAN
